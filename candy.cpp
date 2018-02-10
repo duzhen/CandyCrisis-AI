@@ -106,7 +106,7 @@ void moveCandy(CANDY_ARRAY candy)
         Position p1 = getPosition(candy);
         Position p2 = p1;
         ch = getchar();
-        if (ch == 'e')
+        if (ch == 'w')
         {
             if (p1.x == 0)
             {
@@ -119,7 +119,7 @@ void moveCandy(CANDY_ARRAY candy)
                 cout << "UP!" << endl;
             }
         }
-        else if (ch == 'd')
+        else if (ch == 's')
         {
             if (p1.x == CANDY_ROW - 1)
             {
@@ -132,7 +132,7 @@ void moveCandy(CANDY_ARRAY candy)
                 cout << "DOWN" << endl;
             }
         }
-        else if (ch == 'f')
+        else if (ch == 'd')
         {
             if (p1.y == CANDY_COLUMN - 1)
             {
@@ -145,7 +145,7 @@ void moveCandy(CANDY_ARRAY candy)
                 cout << "RIGHT" << endl;
             }
         }
-        else if (ch == 's')
+        else if (ch == 'a')
         {
             if (p1.y == 0)
             {
