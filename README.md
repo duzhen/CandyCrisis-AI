@@ -1,10 +1,10 @@
 # CandyCrisis-AI
 
-** BUILD
+* BUILD
 ```
 g++ -std=c++11 candy.cpp -o candy
 ```
-** RUN
+* RUN
 ```
 ./candy Sample_Data.txt
 ```
