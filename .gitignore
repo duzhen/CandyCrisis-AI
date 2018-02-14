@@ -1,6 +1,10 @@
-#IDE
+# IDE
 .idea
 .vscode
+
+# Output
+candy
+output.txt
 
 # Prerequisites
 *.d

@@ -93,11 +93,27 @@ void swapCandy(Position p1, Position p2, CANDY_ARRAY candy)
     candy[p1.x][p1.y] = candy[p2.x][p2.y];
     candy[p2.x][p2.y] = swap;
 }
+
+char getStep(Position p) {
+    char steps[][5] = {{'A','B','C','D','E'},{'F','G','H','I','J'},{'K','L','M','N','O'}};
+    return steps[p.x][p.y];
+}
+
+void writeSoltion(string solution, int time) {
+    ofstream file;
+    file.open("output.txt", std::ios_base::app);
+    file << solution;
+    file << "\n";
+    file << time;
+    file << "\n";
+    file.close();
+}
 void moveCandy(CANDY_ARRAY candy)
 {
 
     char ch;
     int steps = 0;
+    string solution = "";
     system("stty -echo");  // supress echo
     system("stty cbreak"); // go to RAW mode
     do
@@ -116,6 +132,7 @@ void moveCandy(CANDY_ARRAY candy)
             {
                 p2.x--;
                 steps ++;
+                solution.push_back(getStep(p2));
                 cout << "UP!" << endl;
             }
         }
@@ -129,6 +146,7 @@ void moveCandy(CANDY_ARRAY candy)
             {
                 p2.x++;
                 steps ++;
+                solution.push_back(getStep(p2));
                 cout << "DOWN" << endl;
             }
         }
@@ -142,6 +160,7 @@ void moveCandy(CANDY_ARRAY candy)
             {
                 p2.y++;
                 steps ++;
+                solution.push_back(getStep(p2));
                 cout << "RIGHT" << endl;
             }
         }
@@ -155,6 +174,7 @@ void moveCandy(CANDY_ARRAY candy)
             {
                 p2.y--;
                 steps ++;
+                solution.push_back(getStep(p2));
                 cout << "LEFT!" << endl;
             }
         }else if (ch == 'q') {
@@ -164,6 +184,8 @@ void moveCandy(CANDY_ARRAY candy)
         if (checkCandy(candy))
         {
             cout << "Congratulations!! Spend:" << steps << " steps" << endl;
+            cout << "Solution is " << solution << endl;
+            writeSoltion(solution, steps);
             break;
         }
     } while (ch != 'q');
