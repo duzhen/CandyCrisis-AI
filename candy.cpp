@@ -200,7 +200,7 @@ void loadFile(string file)
     {
         while (getline(filestream, line))
         {
-            cout << "candy crisis:" << line << endl <<endl;
+            cout << "Candy Problem:" << line << endl <<endl;
             CANDY_ARRAY candy;
             initCandy(candy);
             string2Candy(line, candy);
@@ -215,7 +215,7 @@ void loadFile(string file)
 }
 int main(int argc, char **argv)
 {
-    std::cout << "Welcome to Candy Crisis!" << std::endl;
+    std::cout << "Welcome to Candy Crisis!" << endl << "Type 'awsd' to move the empty tile" << std::endl;
     if(argc < 2) {
         std::cout << "Please input Candy file. e.g: candy Sample_Data.txt";
         return 0;

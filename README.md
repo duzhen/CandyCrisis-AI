@@ -8,3 +8,10 @@ g++ -std=c++11 candy.cpp -o candy
 ```
 ./candy Sample_Data.txt
 ```
+* PLAY
+```
+UP:w
+DOWN:s
+LEFT:a
+RIGHT:d
+```
