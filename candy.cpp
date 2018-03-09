@@ -225,15 +225,16 @@ int heuristicFunction(CANDY_ARRAY candy) {
             heuristic--;
         }
     }
-    return heuristic;
+    // return heuristic;
+    return rand() % CANDY_COLUMN + 1;
 }
 
 char betterMove(CANDY_ARRAY candy) {
     char better = 0;
-    int heuristic = 0;
+    int heuristic = CANDY_COLUMN;
     char move[] = {'w','s','a','d'};
-    cout<<sizeof(move);
-    for(int i=0;i<sizeof(move);i++) {
+    // cout<<sizeof(move);
+    for(int approach=0;approach<sizeof(move);approach++) {
         CANDY_ARRAY heuristicCandy;
         for (int i = 0; i < CANDY_ROW; i++)
         {
@@ -245,12 +246,12 @@ char betterMove(CANDY_ARRAY candy) {
         
         Position p1 = getPosition(heuristicCandy);
         Position p2 = p1;
-        char ch = move[i];
+        char ch = move[approach];
         if (ch == 'w')
         {
             if (p1.x == 0)
             {
-                cout << "**Cannot go up!" << endl;
+                // cout << "**Cannot go up!" << endl;
             }
             else
             {
@@ -314,6 +315,7 @@ char betterMove(CANDY_ARRAY candy) {
             cout << "QUIT" << endl;
         }   
     }
+    return better;
 }
 
 void autoMoveCandy(CANDY_ARRAY candy)
@@ -429,8 +431,8 @@ int main(int argc, char **argv)
         return 0;
     }
     string input = argv[1];
-    int automatic = argv[2];
-    if(automatic==1) {
+    string automatic = argv[2];
+    if(automatic=="auto") {
         loadFileAutomaticlyMove(input);
     } else {
         loadFile(input);
