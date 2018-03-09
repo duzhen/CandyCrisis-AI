@@ -21,6 +21,8 @@ typedef struct
     unsigned int y = 0;
 } Position;
 
+int totalSteps = 0;
+
 void printCandy(CANDY_ARRAY candy)
 {
     for (int i = 0; i < CANDY_ROW; i++)
@@ -185,6 +187,7 @@ void moveCandy(CANDY_ARRAY candy)
         {
             cout << "Congratulations!! Spend:" << steps << " steps" << endl;
             cout << "Solution is " << solution << endl;
+            totalSteps+=steps;
             writeSoltion(solution, steps);
             break;
         }
@@ -213,14 +216,224 @@ void loadFile(string file)
         cout << "File opening is fail." << endl;
     }
 }
+int heuristicFunction(CANDY_ARRAY candy) {
+    int heuristic = CANDY_COLUMN;
+    for (int f = 0; f < CANDY_COLUMN; f++)
+    {
+        if (candy[0][f] == candy[CANDY_ROW - 1][f])
+        {
+            heuristic--;
+        }
+    }
+    return heuristic;
+}
+
+char betterMove(CANDY_ARRAY candy) {
+    char better = 0;
+    int heuristic = 0;
+    char move[] = {'w','s','a','d'};
+    cout<<sizeof(move);
+    for(int i=0;i<sizeof(move);i++) {
+        CANDY_ARRAY heuristicCandy;
+        for (int i = 0; i < CANDY_ROW; i++)
+        {
+            for (int j = 0; j < CANDY_COLUMN; j++)
+            {
+                heuristicCandy[i][j] = candy[i][j];
+            }
+        }
+        
+        Position p1 = getPosition(heuristicCandy);
+        Position p2 = p1;
+        char ch = move[i];
+        if (ch == 'w')
+        {
+            if (p1.x == 0)
+            {
+                cout << "**Cannot go up!" << endl;
+            }
+            else
+            {
+                p2.x--;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 'w';
+                }
+            }
+        } else if (ch == 's')
+        {
+            if (p1.x == CANDY_ROW - 1)
+            {
+                cout << "**Cannot go down!" << endl;
+            }
+            else
+            {
+                p2.x++;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 's';
+                }
+            }
+        } else if (ch == 'd')
+        {
+            if (p1.y == CANDY_COLUMN - 1)
+            {
+                cout << "**Cannot go right!" << endl;
+            }
+            else
+            {
+                p2.y++;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 'd';
+                }
+            }
+        } else if (ch == 'a')
+        {
+            if (p1.y == 0)
+            {
+                cout << "**Cannot go left!" << endl;
+            }
+            else
+            {
+                p2.y--;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 'a';
+                }
+            }
+        }else if (ch == 'q') {
+            cout << "QUIT" << endl;
+        }   
+    }
+}
+
+void autoMoveCandy(CANDY_ARRAY candy)
+{
+
+    char ch;
+    int steps = 0;
+    string solution = "";
+    system("stty -echo");  // supress echo
+    system("stty cbreak"); // go to RAW mode
+    do
+    {
+        printCandy(candy);
+        Position p1 = getPosition(candy);
+        Position p2 = p1;
+        ch = betterMove(candy);
+        if (ch == 'w')
+        {
+            if (p1.x == 0)
+            {
+                cout << "**Cannot go up!" << endl;
+            }
+            else
+            {
+                p2.x--;
+                steps ++;
+                solution.push_back(getStep(p2));
+                cout << "UP!" << endl;
+            }
+        }
+        else if (ch == 's')
+        {
+            if (p1.x == CANDY_ROW - 1)
+            {
+                cout << "**Cannot go down!" << endl;
+            }
+            else
+            {
+                p2.x++;
+                steps ++;
+                solution.push_back(getStep(p2));
+                cout << "DOWN" << endl;
+            }
+        }
+        else if (ch == 'd')
+        {
+            if (p1.y == CANDY_COLUMN - 1)
+            {
+                cout << "**Cannot go right!" << endl;
+            }
+            else
+            {
+                p2.y++;
+                steps ++;
+                solution.push_back(getStep(p2));
+                cout << "RIGHT" << endl;
+            }
+        }
+        else if (ch == 'a')
+        {
+            if (p1.y == 0)
+            {
+                cout << "**Cannot go left!" << endl;
+            }
+            else
+            {
+                p2.y--;
+                steps ++;
+                solution.push_back(getStep(p2));
+                cout << "LEFT!" << endl;
+            }
+        }else if (ch == 'q') {
+            cout << "QUIT" << endl;
+        }
+        swapCandy(p1, p2, candy);
+        if (checkCandy(candy))
+        {
+            cout << "Congratulations!! Spend:" << steps << " steps" << endl;
+            cout << "Solution is " << solution << endl;
+            writeSoltion(solution, steps);
+            break;
+        }
+    } while (ch != 'q');
+    system("stty echo");    // Make echo work
+    system("stty -cbreak"); // go to COOKED m
+}
+void loadFileAutomaticlyMove(string file)
+{
+    string line;
+    ifstream filestream(file);
+    if (filestream.is_open())
+    {
+        while (getline(filestream, line))
+        {
+            cout << "Candy Problem:" << line << endl <<endl;
+            CANDY_ARRAY candy;
+            initCandy(candy);
+            string2Candy(line, candy);
+            autoMoveCandy(candy);
+        }
+        filestream.close();
+    }
+    else
+    {
+        cout << "File opening is fail." << endl;
+    }
+}
 int main(int argc, char **argv)
 {
     std::cout << "Welcome to Candy Crisis!" << endl << "Type 'awsd' to move the empty tile" << std::endl;
-    if(argc < 2) {
-        std::cout << "Please input Candy file. e.g: candy Sample_Data.txt";
+    if(argc < 3) {
+        std::cout << "Please input Candy file. e.g: candy Sample_Data.txt 0";
         return 0;
     }
     string input = argv[1];
-    loadFile(input);
+    int automatic = argv[2];
+    if(automatic==1) {
+        loadFileAutomaticlyMove(input);
+    } else {
+        loadFile(input);
+    }
     return 0;
 }
