@@ -426,14 +426,16 @@ void loadFileAutomaticlyMove(string file)
 int main(int argc, char **argv)
 {
     std::cout << "Welcome to Candy Crisis!" << endl << "Type 'awsd' to move the empty tile" << std::endl;
-    if(argc < 3) {
-        std::cout << "Please input Candy file. e.g: candy Sample_Data.txt 0";
+    if(argc < 2) {
+        std::cout << "Please input Candy file. e.g: candy Sample_Data.txt";
         return 0;
     }
     string input = argv[1];
-    string automatic = argv[2];
-    if(automatic=="auto") {
-        loadFileAutomaticlyMove(input);
+    if(argc == 3) {
+        string automatic = argv[2];
+        if(automatic=="auto") {
+            loadFileAutomaticlyMove(input);
+        }
     } else {
         loadFile(input);
     }
