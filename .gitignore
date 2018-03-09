@@ -35,6 +35,6 @@ output.txt
 *.lib
 
 # Executables
-*.exe
+#*.exe
 *.out
 *.app
