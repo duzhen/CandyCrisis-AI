@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <stdio.h>
+#include <vector>
 
 #define KB_UP 72
 #define KB_DOWN 80
@@ -318,10 +319,100 @@ char betterMove(CANDY_ARRAY candy) {
     return better;
 }
 
+void betterSearchingMove(CANDY_ARRAY candy, vector<char> search, int level, int deep) {
+    char better = 0;
+    int heuristic = CANDY_COLUMN;
+    char move[] = {'w','s','a','d'};
+    // cout<<sizeof(move);
+    for(int approach=0;approach<sizeof(move);approach++) {
+        CANDY_ARRAY heuristicCandy;
+        for (int i = 0; i < CANDY_ROW; i++)
+        {
+            for (int j = 0; j < CANDY_COLUMN; j++)
+            {
+                heuristicCandy[i][j] = candy[i][j];
+            }
+        }
+        
+        Position p1 = getPosition(heuristicCandy);
+        Position p2 = p1;
+        char ch = move[approach];
+        if (ch == 'w')
+        {
+            if (p1.x == 0)
+            {
+                // cout << "**Cannot go up!" << endl;
+            }
+            else
+            {
+                p2.x--;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 'w';
+                }
+            }
+        } else if (ch == 's')
+        {
+            if (p1.x == CANDY_ROW - 1)
+            {
+                cout << "**Cannot go down!" << endl;
+            }
+            else
+            {
+                p2.x++;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 's';
+                }
+            }
+        } else if (ch == 'd')
+        {
+            if (p1.y == CANDY_COLUMN - 1)
+            {
+                cout << "**Cannot go right!" << endl;
+            }
+            else
+            {
+                p2.y++;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 'd';
+                }
+            }
+        } else if (ch == 'a')
+        {
+            if (p1.y == 0)
+            {
+                cout << "**Cannot go left!" << endl;
+            }
+            else
+            {
+                p2.y--;
+                swapCandy(p1, p2, heuristicCandy);
+                int h = heuristicFunction(heuristicCandy);
+                if(h < heuristic) {
+                    heuristic = h;
+                    better = 'a';
+                }
+            }
+        }else if (ch == 'q') {
+            cout << "QUIT" << endl;
+        }   
+    }
+    return;
+}
+
 void autoMoveCandy(CANDY_ARRAY candy)
 {
 
     char ch;
+    vector<char> search;
     int steps = 0;
     string solution = "";
     system("stty -echo");  // supress echo
@@ -332,6 +423,7 @@ void autoMoveCandy(CANDY_ARRAY candy)
         Position p1 = getPosition(candy);
         Position p2 = p1;
         ch = betterMove(candy);
+        // betterSearchingMove(candy, search,0, 5);
         if (ch == 'w')
         {
             if (p1.x == 0)
