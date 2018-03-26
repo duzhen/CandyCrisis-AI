@@ -6,11 +6,11 @@ g++ -std=c++11 candy.cpp -o candy
 ```
 * RUN
 ```
-./candy Sample_Data.txt
+./candy Sample_Data.txt output.txt
 ```
 * AUTO RUN
 ```
-./candy Sample_Data.txt auto
+./candy Sample_Data.txt output.txt auto
 ```
 * PLAY
 ```

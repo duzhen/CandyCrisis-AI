@@ -2,9 +2,9 @@ import random
 import sys
 
 level1 = ['e','r','r','r','r','r','r','b','b','b','b','b','b','w','w']
-level2 = ['e','rxxxxxx','r','r','r','r','r','b','b','b','b','w','w','y','y']
+level2 = ['e','r','r','r','r','r','r','b','b','b','b','w','w','y','y']
 level3 = ['e','r','r','r','r','b','b','b','b','w','w','y','y','g','g']
-level4 = ['e',  'r','r','r','r','b','b','w','w','y','y','g','g','p','p']
+level4 = ['e','r','r','r','r','b','b','w','w','y','y','g','g','p','p']
 
 if sys.argv[1] == '1':
     array = level1

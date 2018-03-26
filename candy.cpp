@@ -29,6 +29,8 @@ typedef struct
 
 int totalSteps = 0;
 string output;
+bool checkApproachCandy(const CANDY_ARRAY candy, int distance);
+
 void printCandy(const CANDY_ARRAY candy)
 {
     for (int i = 0; i < CANDY_ROW; i++)
@@ -139,7 +141,7 @@ void moveCandy(CANDY_ARRAY candy)
     system("stty cbreak"); // go to RAW mode
     do
     {
-        if(DEBUG) printCandy(candy);
+        printCandy(candy);
         Position p1 = getPosition(candy);
         Position p2 = p1;
         ch = getchar();
@@ -207,8 +209,8 @@ void moveCandy(CANDY_ARRAY candy)
         swapCandy(p1, p2, candy);
         if (checkCandy(candy))
         {
-            if(DEBUG) cout << "Approach good!! Spend:" << steps << " steps" << endl;
-            if(DEBUG) cout << "Approach solution is " << solution << endl;
+            cout << "Congratulations!! Spend:" << steps << " steps" << endl;
+            cout << "Solution is " << solution << endl;
             totalSteps += steps;
             writeSoltion(solution, steps);
             break;
@@ -309,15 +311,17 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         // }
         if (find(history.begin(), history.end(), candyStr) == history.end())
         {
-            int h = heuristicFunction(candy);
-            if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
-            if (h < *heuristic)
-            {
-                if(DEBUG) cout << deepSearch.size() << "less than old heuristic:" << *heuristic << endl;
-                *heuristic = h;
-                search.clear();
-                search.assign(deepSearch.begin(), deepSearch.end());
-            }
+            // delete if (checkApproachCandy(candy, 1)) {
+                int h = heuristicFunction(candy);
+                if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
+                if (h < *heuristic)
+                {
+                    if(DEBUG) cout << deepSearch.size() << "less than old heuristic:" << *heuristic << endl;
+                    *heuristic = h;
+                    search.clear();
+                    search.assign(deepSearch.begin(), deepSearch.end());
+                }
+            // }
         }
         return;
     }
@@ -510,7 +514,7 @@ void writeApproach(string solution)
     file << solution;
     file.close();
 }
-bool checkApproachCandy(CANDY_ARRAY candy, int distance)
+bool checkApproachCandy(const CANDY_ARRAY candy, int distance)
 {
     std::map<char, int> counting;
     std::pair<std::map<char, int>::iterator, bool> ret;
@@ -670,6 +674,16 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
     string solution = "";
     vector<char> search;
     vector<char> deepSearch;
+    for(int i=1;i<CANDY_COLUMN;i++) {
+        if (checkApproachCandy(candy, i)) {
+            if(i==1) {
+                return;
+            } else {
+                distance = i;
+                break;
+            }
+        }
+    }
     do
     {
         if(DEBUG || SHOW) printCandy(candy);
@@ -758,8 +772,8 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
 
         if (checkApproachCandy(candy, distance))
         {
-            if(DEBUG) cout << "Congratulations!! Spend:" << steps << " steps" << endl;
-            if(DEBUG) cout << "Solution is " << solution << endl;
+            if(DEBUG) cout << "Approach good!! Spend:" << steps << " steps" << endl;
+            if(DEBUG) cout << "Approach solution is " << solution << endl;
             if (distance == 1)
             {
                 writeApproach(solution);
