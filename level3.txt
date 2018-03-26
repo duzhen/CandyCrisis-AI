@@ -1,30 +1,30 @@
-g y w r r b b b b r y w g r 
-r w b r y b w r y g b r b g 
-b w r g w b r y y r r g b b 
-r b g g y b r r r b w w y b 
-b g y b r b r b r w w g y r 
-b w r w y g b g y r r b r b 
-b r b b w b r r y g g w r y 
-r g b r y b b r w w r y g b 
-g w b r r g r b y r y b b w 
-r r r b r g b w b y b y g w 
-b b b y r r b g w g y w r r 
-r y r b w b r b g b g r w y 
-y w b r y g w b r b r b g r 
-g r r y g y r b w b b r w b 
-r b y w b w b r y b r r g g 
-y g r w r b b w g b r b y r 
-b g w b y r w r b b y r r g 
-b w r b b b r y r g g w y r 
-b y b g r r b y r r b g w w 
-y w b g r r b b r b r y w g 
-g r w r b r b b y w b y g r 
-w g r y g b y w r b b r r b 
-r g r b w g r b y y b r w b 
-y b w r w g y g b r b b r r 
-r r b r b r g b y g b w w y 
-g y r r r w r b b y w b b g 
-g r w r w b b y b b y g r r 
-w w b r r y g r y r g b b b 
-r b r b r r y b g b w w g y 
-b b r r b r w w g y g b r y 
+b r w y w g y g r e b b b r r 
+r e r b r b w b g y y r b g w 
+e r w y b r r r w y g b b b g 
+b g r y r r g w e y b b w b r 
+b r r g g b b r w b r y y e w 
+r w r b g b y e w g b r r y b 
+b w b e r y g y r b r g w b r 
+r e w y b b r r g b b g y r w 
+e w b r b w b y g b r r y g r 
+g b b g r y w y r b w b r r e 
+b y b e y w b r r w g b r r g 
+r b w y g e r b b w b y r r g 
+r b b e b r r b y w g g y w r 
+r r b w g w r e y b b g b r y 
+y r b e b r y w b g g b w r r 
+r y r b g r w r e b y b w g b 
+g r b b w b r e r b g y r w y 
+y g e b r g y w r r b w r b b 
+r g y b r b b r g b y w r w e 
+g y r y g b w b r b e r w b r 
+w r b g b r y w g r y r b b e 
+r y r b r r w g g b w b b y e 
+b e r w b y b w r g g y r r b 
+y b w b g b r g r w y b r r e 
+e b b w r y w r b r b r g g y 
+g g y r r r w r b b b b y e w 
+w r y b g b r r y e b w r g b 
+y r w r e w g r b g b b b y r 
+e y b r b w g g r w b r b y r 
+r g b b b r r r w y y g b e w 
