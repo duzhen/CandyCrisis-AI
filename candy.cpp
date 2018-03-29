@@ -8,6 +8,7 @@
 #include <limits>
 #include <algorithm>
 #include <chrono>
+#include <thread>
 
 #define DEBUG false
 #define SHOW false
@@ -30,11 +31,10 @@ typedef struct
     unsigned int y = 0;
 } Position;
 
-int MAX_APPROACH = CANDY_COLUMN;
 int start = 0;
 int totalSteps = 0;
 string output;
-bool checkApproachCandy(const CANDY_ARRAY candy, int distance);
+bool checkApproachCandy(const CANDY_ARRAY candy, int distance, int maxApproach);
 
 void printCandy(const CANDY_ARRAY candy)
 {
@@ -367,15 +367,15 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         // }
         if (find(history.begin(), history.end(), candyStr) == history.end())
         {
-                int h = heuristicFunction(candy);
-                if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
-                if (h < *heuristic)
-                {
-                    if(DEBUG) cout << deepSearch.size() << "less than old heuristic:" << *heuristic << endl;
-                    *heuristic = h;
-                    search.clear();
-                    search.assign(deepSearch.begin(), deepSearch.end());
-                }
+            int h = heuristicFunction(candy);
+            if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
+            if (h < *heuristic)
+            {
+                if(DEBUG) cout << deepSearch.size() << "less than old heuristic:" << *heuristic << endl;
+                *heuristic = h;
+                search.clear();
+                search.assign(deepSearch.begin(), deepSearch.end());
+            }
         }
         return;
     }
@@ -465,14 +465,16 @@ void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
     string solution = "";
     // int heuristic = std::numeric_limits<int>::max();
     int heuristic = heuristicFunction(candy);
-    // if(heuristic > 3) {
-    //     heuristic = 3;
-    // } else if(heuristic > 2) {
-    //     heuristic = 1;
-    // } else {
-    //     heuristic = 0;
-    // }
     int preHeuristic = heuristic;
+    // if(heuristic > 3) {
+    //     preHeuristic = 3;
+    // } else 
+    if(heuristic > 3) {
+        preHeuristic = 2;
+    } else {
+        preHeuristic = 1;
+    }
+    int candyCount = countUniqueCharacters(candy2String(candy));
     do
     {
         // if(DEBUG || SHOW) printCandy(candy);
@@ -504,9 +506,13 @@ void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
             search.clear();
             deepSearch.clear();
             betterSearchMove(candy, history, search, deepSearch, deep++, &heuristic, pLT, pRB, 0);
+            if(candyCount <=4) {
+                if(heuristic==0) break;
+            } else {
+                if(preHeuristic>heuristic) break;
+            }
         // } while (preHeuristic<=heuristic);
-        } while (heuristic!=0);
-        // exit(0);
+        } while (true);//heuristic!=0);
         preHeuristic = heuristic;
         if (DEBUG) {
             cout << "get search path size:" << search.size() << endl;
@@ -607,7 +613,7 @@ void writeApproach(string solution)
     file << solution;
     file.close();
 }
-bool checkApproachCandy(const CANDY_ARRAY candy, int distance)
+bool checkApproachCandy(const CANDY_ARRAY candy, int distance, int maxApproach)
 {
     std::map<char, int> counting;
     std::pair<std::map<char, int>::iterator, bool> ret;
@@ -631,9 +637,9 @@ bool checkApproachCandy(const CANDY_ARRAY candy, int distance)
             }
         }
     }
-    return count >= MAX_APPROACH;
+    return count >= maxApproach;
 }
-int approachHeuristicFunction(const CANDY_ARRAY candy, int distance)
+int approachHeuristicFunction(const CANDY_ARRAY candy, int distance, int maxApproach)
 {
     std::map<char, int> counting;
     std::pair<std::map<char, int>::iterator, bool> ret;
@@ -654,18 +660,18 @@ int approachHeuristicFunction(const CANDY_ARRAY candy, int distance)
                     }
                     heuristic += (d);
                     counting.erase(candy[i][j]);
-                    if(count == MAX_APPROACH) {
-                        return heuristic+MAX_APPROACH-count;
+                    if(count == maxApproach) {
+                        return heuristic+maxApproach-count;
                     }
                 }
             }
         }
     }
 
-    return heuristic+MAX_APPROACH-count;
+    return heuristic+maxApproach-count;
 }
 
-void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<char> &search, vector<char> &deepSearch, int deep, int *heuristic, int distance, char from)
+void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<char> &search, vector<char> &deepSearch, int deep, int *heuristic, int distance, int maxApproach, char from)
 {
     char better = 0;
     char move[] = {'w', 's', 'a', 'd'};
@@ -675,7 +681,7 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         string candyStr = candy2String(candy);
         if (find(history.begin(), history.end(), candyStr) == history.end())
         {
-            int h = approachHeuristicFunction(candy, distance);
+            int h = approachHeuristicFunction(candy, distance, maxApproach);
             if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
             if (h < *heuristic)
             {
@@ -757,7 +763,7 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         deepSearch.push_back(ch);
         if(DEBUG) cout << ch << "go deep" << d - 1 << endl;
         swapCandy(p1, p2, heuristicCandy);
-        betterApproachMove(heuristicCandy, history, search, deepSearch, --d, heuristic, distance, ch);
+        betterApproachMove(heuristicCandy, history, search, deepSearch, --d, heuristic, distance, maxApproach, ch);
         deepSearch.pop_back();
     }
 }
@@ -766,11 +772,18 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
     char ch;
     int distance = CANDY_COLUMN - 1;
     int steps = 0;
+    int maxApproach = CANDY_COLUMN;
+    int candyCount = countUniqueCharacters(candy2String(candy));
+    if(candyCount <=4) {
+        maxApproach = CANDY_COLUMN;
+    } else {
+        maxApproach = CANDY_COLUMN+1;
+    }
     string solution = "";
     vector<char> search;
     vector<char> deepSearch;
     for(int i=1;i<CANDY_COLUMN;i++) {
-        if (checkApproachCandy(candy, i)) {
+        if (checkApproachCandy(candy, i, maxApproach)) {
             if(i<=MINI_DISTANCE) {
                 if(SHOW) printCandy(candy);
                 return;
@@ -779,12 +792,6 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
                 break;
             }
         }
-    }
-    int candyCount = countUniqueCharacters(candy2String(candy));
-    if(candyCount <=4) {
-        MAX_APPROACH = CANDY_COLUMN;
-    } else {
-        MAX_APPROACH = CANDY_COLUMN+1;
     }
     do
     {
@@ -796,7 +803,7 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
             if(DEBUG) cout << "search deep is:" << deep << endl;
             search.clear();
             deepSearch.clear();
-            betterApproachMove(candy, history, search, deepSearch, deep++, &heuristic, distance, 0);
+            betterApproachMove(candy, history, search, deepSearch, deep++, &heuristic, distance, maxApproach, 0);
         // } while(search.size()==0);CANDY_COLUMN+1
         // } while (!checkApproachCandy(heuristicCandy, distance));
         } while (heuristic>CANDY_COLUMN*distance);//search.size() == 0);
@@ -875,11 +882,11 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
             history.push_back(candy2String(candy));
         }
 
-        if (checkApproachCandy(candy, distance))
+        if (checkApproachCandy(candy, distance, maxApproach))
         {
             if(DEBUG) cout << "Approach good!! Spend:" << steps << " steps" << endl;
             if(DEBUG) cout << "Approach solution is " << solution << endl;
-            if (distance == MINI_DISTANCE || checkApproachCandy(candy, MINI_DISTANCE))
+            if (distance == MINI_DISTANCE || checkApproachCandy(candy, MINI_DISTANCE, maxApproach))
             {
                 if(SHOW) printCandy(candy);
                 writeApproach(solution);
@@ -889,11 +896,13 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
         }
     } while (ch != 'q');
 }
-void loadFileAutomaticlyMove(string file)
+
+
+void loadFileAutomaticlyMove(string input)
 {
     string line;
     int lineNumber = 0;
-    ifstream filestream(file);
+    ifstream filestream(input);
     if (filestream.is_open())
     {
         while (getline(filestream, line))
@@ -920,6 +929,53 @@ void loadFileAutomaticlyMove(string file)
         cout << "File opening is fail." << endl;
     }
 }
+void candyCrisis(vector<string> lines)
+{
+    for (std::vector<string>::iterator it = lines.begin(); it != lines.end(); ++it)
+    {
+        string line = *it;
+        CANDY_ARRAY candy;
+        vector<string> history;
+        initCandy(candy);
+        string2Candy(line, candy);
+        milliseconds ms = duration_cast<milliseconds>(
+            system_clock::now().time_since_epoch());
+        start = ms.count();
+        autoApproachCandy(candy, history);
+        autoMoveCandy(candy, history);
+    }
+}
+void multiThreadLoadFileAutomaticlyMove(string input, int threadNumber) {
+    string line;
+    int lineNumber = 0;
+    ifstream filestream(input);
+    vector<string> line1;
+    vector<string> line2;
+    if (filestream.is_open())
+    {
+        while (getline(filestream, line))
+        {
+            cout << ++lineNumber << " Candy Problem:" << endl
+                 << line << endl
+                 << endl;
+            if(lineNumber%1==0) {
+                line1.push_back(line);
+            } else {
+                line2.push_back(line);
+            }
+        }
+        std::thread t1(candyCrisis, line1);
+        std::thread t2(candyCrisis, line2);
+        t1.join();
+        t2.join();
+        writeApproach(std::to_string(totalSteps));
+        filestream.close();
+    }
+    else
+    {
+        cout << "File opening is fail." << endl;
+    }
+}
 int main(int argc, char **argv)
 {
     std::cout << "Welcome to Candy Crisis!" << endl
@@ -938,8 +994,14 @@ int main(int argc, char **argv)
         {
             loadFileAutomaticlyMove(input);
         }
-    }
-    else
+    } else if(argc == 5) {
+        int threadNumber = std::stoi(argv[4]);
+        string automatic = argv[3];
+        if (automatic == "auto")
+        {
+            // multiThreadLoadFileAutomaticlyMove(input, threadNumber);
+        }
+    } else
     {
         loadFile(input);
     }
