@@ -929,53 +929,53 @@ void loadFileAutomaticlyMove(string input)
         cout << "File opening is fail." << endl;
     }
 }
-void candyCrisis(vector<string> lines)
-{
-    for (std::vector<string>::iterator it = lines.begin(); it != lines.end(); ++it)
-    {
-        string line = *it;
-        CANDY_ARRAY candy;
-        vector<string> history;
-        initCandy(candy);
-        string2Candy(line, candy);
-        milliseconds ms = duration_cast<milliseconds>(
-            system_clock::now().time_since_epoch());
-        start = ms.count();
-        autoApproachCandy(candy, history);
-        autoMoveCandy(candy, history);
-    }
-}
-void multiThreadLoadFileAutomaticlyMove(string input, int threadNumber) {
-    string line;
-    int lineNumber = 0;
-    ifstream filestream(input);
-    vector<string> line1;
-    vector<string> line2;
-    if (filestream.is_open())
-    {
-        while (getline(filestream, line))
-        {
-            cout << ++lineNumber << " Candy Problem:" << endl
-                 << line << endl
-                 << endl;
-            if(lineNumber%1==0) {
-                line1.push_back(line);
-            } else {
-                line2.push_back(line);
-            }
-        }
-        std::thread t1(candyCrisis, line1);
-        std::thread t2(candyCrisis, line2);
-        t1.join();
-        t2.join();
-        writeApproach(std::to_string(totalSteps));
-        filestream.close();
-    }
-    else
-    {
-        cout << "File opening is fail." << endl;
-    }
-}
+// void candyCrisis(vector<string> lines)
+// {
+//     for (std::vector<string>::iterator it = lines.begin(); it != lines.end(); ++it)
+//     {
+//         string line = *it;
+//         CANDY_ARRAY candy;
+//         vector<string> history;
+//         initCandy(candy);
+//         string2Candy(line, candy);
+//         milliseconds ms = duration_cast<milliseconds>(
+//             system_clock::now().time_since_epoch());
+//         start = ms.count();
+//         autoApproachCandy(candy, history);
+//         autoMoveCandy(candy, history);
+//     }
+// }
+// void multiThreadLoadFileAutomaticlyMove(string input, int threadNumber) {
+//     string line;
+//     int lineNumber = 0;
+//     ifstream filestream(input);
+//     vector<string> line1;
+//     vector<string> line2;
+//     if (filestream.is_open())
+//     {
+//         while (getline(filestream, line))
+//         {
+//             cout << ++lineNumber << " Candy Problem:" << endl
+//                  << line << endl
+//                  << endl;
+//             if(lineNumber%1==0) {
+//                 line1.push_back(line);
+//             } else {
+//                 line2.push_back(line);
+//             }
+//         }
+//         std::thread t1(candyCrisis, line1);
+//         std::thread t2(candyCrisis, line2);
+//         t1.join();
+//         t2.join();
+//         writeApproach(std::to_string(totalSteps));
+//         filestream.close();
+//     }
+//     else
+//     {
+//         cout << "File opening is fail." << endl;
+//     }
+// }
 int main(int argc, char **argv)
 {
     std::cout << "Welcome to Candy Crisis!" << endl
