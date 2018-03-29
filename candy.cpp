@@ -777,7 +777,7 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
     if(candyCount <=4) {
         maxApproach = CANDY_COLUMN;
     } else {
-        maxApproach = CANDY_COLUMN+1;
+        maxApproach = CANDY_COLUMN;
     }
     string solution = "";
     vector<char> search;
@@ -907,6 +907,7 @@ void loadFileAutomaticlyMove(string input)
     {
         while (getline(filestream, line))
         {
+            if(SHOW)
             cout << ++lineNumber << " Candy Problem:" << endl
                  << line << endl
                  << endl;
