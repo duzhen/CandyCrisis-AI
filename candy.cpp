@@ -7,9 +7,11 @@
 #include <map>
 #include <limits>
 #include <algorithm>
+#include <chrono>
 
 #define DEBUG false
 #define SHOW false
+#define MINI_DISTANCE 1
 #define KB_UP 72
 #define KB_DOWN 80
 #define KB_LEFT 75
@@ -21,12 +23,15 @@
 using CANDY_ARRAY = char[CANDY_ROW][CANDY_COLUMN];
 
 using namespace std;
+using namespace std::chrono;
 typedef struct
 {
     unsigned int x = 0;
     unsigned int y = 0;
 } Position;
 
+int MAX_APPROACH = CANDY_COLUMN;
+int start = 0;
 int totalSteps = 0;
 string output;
 bool checkApproachCandy(const CANDY_ARRAY candy, int distance);
@@ -38,6 +43,7 @@ void printCandy(const CANDY_ARRAY candy)
         for (int j = 0; j < CANDY_COLUMN; j++)
         {
             std::cout << candy[i][j] << "  ";
+            if(DEBUG) if(candy[i][j] <97 || candy[i][j]>122) exit(0);
         }
         std::cout << std::endl;
     }
@@ -86,7 +92,34 @@ bool checkCandy(CANDY_ARRAY candy)
     }
     return true;
 }
-
+bool checkMoveCandy(const CANDY_ARRAY candy, int xDistance, int yDistance)
+{
+    std::map<char, Position> counting;
+    std::pair<std::map<char, Position>::iterator, bool> ret;
+    int count = 0;
+    for (int j = 0; j < CANDY_COLUMN; j++)
+    {
+        for (int i = 0; i < CANDY_ROW; i+=2)
+        {
+            if (candy[i][j] != 'e')
+            {
+                Position p;
+                p.x = i;
+                p.y = j;
+                ret = counting.insert(std::pair<char, Position>(candy[i][j], p));
+                if (ret.second == false)
+                {
+                    if (i - ret.first->second.x >= xDistance && j - ret.first->second.y <= yDistance)
+                    {
+                        count++;
+                    }
+                    counting.erase(candy[i][j]);
+                }
+            }
+        }
+    }
+    return count >= 5;
+}
 Position getPosition(CANDY_ARRAY candy)
 {
     Position p;
@@ -127,7 +160,7 @@ void writeSoltion(string solution, int time)
     file.open(output, std::ios_base::app);
     file << solution;
     file << "\n";
-    file << time;
+    file << time << "ms";
     file << "\n";
     file.close();
 }
@@ -250,7 +283,7 @@ int countUniqueCharacters(std::string str)
 int heuristicFunction(const CANDY_ARRAY candy)
 {
     int candyCount = countUniqueCharacters(candy2String(candy));
-    if(candyCount < 7) {
+    if(candyCount < 10) {
         int heuristic = CANDY_COLUMN;
         for (int f = 0; f < CANDY_COLUMN; f++)
         {
@@ -264,6 +297,7 @@ int heuristicFunction(const CANDY_ARRAY candy)
         std::map<char, Position> counting;
         std::pair<std::map<char, Position>::iterator, bool> ret;
         int heuristic = 0;
+        int count = 0;
         for (int j = 0; j < CANDY_COLUMN; j++)
         {
             for (int i = 0; i < CANDY_ROW; i+=2)
@@ -276,27 +310,49 @@ int heuristicFunction(const CANDY_ARRAY candy)
                     ret = counting.insert(std::pair<char, Position>(candy[i][j], p));
                     if (ret.second == false)
                     {
-                        // std::cout << "element " << candy[i][j] << " already existed";
-                        // std::cout << " with a value of " << ret.first->second.y << '\n';
                         if(ret.first->second.y - j <=1) {
-                            heuristic += (CANDY_ROW-1-(i-ret.first->second.x));
+                            count++;
+                            heuristic += (CANDY_ROW-1-(i-ret.first->second.x)+ret.first->second.y - j);
                         } else {
-                            heuristic += (CANDY_ROW-1);
+                            heuristic += (CANDY_ROW+ret.first->second.y - j);
                         }
                         counting.erase(candy[i][j]);
+                        if(count == CANDY_COLUMN) {
+                            return heuristic+CANDY_ROW*(CANDY_COLUMN-count);
+                        }
                     }
                 }
             }
+            int i=1;
+            if (candy[i][j] != 'e')
+                {
+                    Position p;
+                    p.x = i;
+                    p.y = j;
+                    ret = counting.insert(std::pair<char, Position>(candy[i][j], p));
+                    if (ret.second == false)
+                    {
+                        if(ret.first->second.y - j <=1) {
+                            count++;
+                            heuristic += (CANDY_ROW-1-(i-ret.first->second.x)+ret.first->second.y - j);
+                        } else {
+                            heuristic += (CANDY_ROW+ret.first->second.y - j);
+                        }
+                        counting.erase(candy[i][j]);
+                        if(count == CANDY_COLUMN) {
+                            heuristic+CANDY_ROW*(CANDY_COLUMN-count);
+                        }
+                    }
+                }
         }
-        return heuristic;
+        return heuristic+CANDY_ROW*(CANDY_COLUMN-count);
     }
 }
 
-void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<char> &search, vector<char> &deepSearch, int deep, int *heuristic)
+void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<char> &search, vector<char> &deepSearch, int deep, int *heuristic, Position pLT, Position pRB, char from)
 {
     char better = 0;
     char move[] = {'w', 's', 'a', 'd'};
-    // cout<<sizeof(move);
     if (deep == 0)
     {
         if(DEBUG) cout << "deep == 0" << endl;
@@ -311,7 +367,6 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         // }
         if (find(history.begin(), history.end(), candyStr) == history.end())
         {
-            // delete if (checkApproachCandy(candy, 1)) {
                 int h = heuristicFunction(candy);
                 if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
                 if (h < *heuristic)
@@ -321,7 +376,6 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
                     search.clear();
                     search.assign(deepSearch.begin(), deepSearch.end());
                 }
-            // }
         }
         return;
     }
@@ -342,7 +396,7 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         char ch = move[approach];
         if (ch == 'w')
         {
-            if (p1.x == 0)
+            if (p1.x == pLT.x || from == 's')
             {
                 if(DEBUG) cout << "**Cannot go up!" << endl;
                 continue;
@@ -354,7 +408,7 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         }
         else if (ch == 's')
         {
-            if (p1.x == CANDY_ROW - 1)
+            if (p1.x == pRB.x || from == 'w')
             {
                 if(DEBUG) cout << "**Cannot go down!" << endl;
                 continue;
@@ -366,7 +420,7 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         }
         else if (ch == 'd')
         {
-            if (p1.y == CANDY_COLUMN - 1)
+            if (p1.y == pRB.y || from == 'a')
             {
                 if(DEBUG) cout << "**Cannot go right!" << endl;
                 continue;
@@ -378,7 +432,7 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         }
         else if (ch == 'a')
         {
-            if (p1.y == 0)
+            if (p1.y == pLT.y || from == 'd')
             {
                 if(DEBUG) cout << "**Cannot go left!" << endl;
                 continue;
@@ -392,13 +446,13 @@ void betterSearchMove(const CANDY_ARRAY candy, vector<string> history, vector<ch
         {
             cout << "QUIT" << endl;
         }
-        // if(p2.x != history.x || p2.y != history.y) {
         deepSearch.push_back(ch);
-        if(DEBUG) cout << ch << "go deep" << d - 1 << endl;
+        if(DEBUG) cout << "move " << ch << " and go deep" << d - 1 << endl;
         swapCandy(p1, p2, heuristicCandy);
-        betterSearchMove(heuristicCandy, history, search, deepSearch, --d, heuristic);
+        if(DEBUG) printCandy(heuristicCandy);
+        betterSearchMove(heuristicCandy, history, search, deepSearch, --d, heuristic, pLT, pRB, ch);
         deepSearch.pop_back();
-        // }
+        if(*heuristic==0) break;
     }
 }
 void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
@@ -409,28 +463,61 @@ void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
     vector<char> deepSearch;
     int steps = 0;
     string solution = "";
+    // int heuristic = std::numeric_limits<int>::max();
+    int heuristic = heuristicFunction(candy);
+    // if(heuristic > 3) {
+    //     heuristic = 3;
+    // } else if(heuristic > 2) {
+    //     heuristic = 1;
+    // } else {
+    //     heuristic = 0;
+    // }
+    int preHeuristic = heuristic;
     do
     {
-        if(DEBUG || SHOW) printCandy(candy);
-        Position p1 = getPosition(candy);
-        Position p2 = p1;
+        // if(DEBUG || SHOW) printCandy(candy);
         int deep = 1;
-        int heuristic = std::numeric_limits<int>::max();
         do
         {
-            if(DEBUG) cout << "search deep is:" << deep << endl;
+            Position pLT;
+            pLT.x = 0;
+            pLT.y = 0;
+            Position pRB;
+            pRB.x = CANDY_ROW -1;
+            pRB.y = CANDY_COLUMN-1;
+            // Position pE = getPosition(candy);
+            // if(pE.y > 0 && (candy[0][pE.y] != candy[CANDY_ROW-1][pE.y] || candy[0][pE.y-1] != candy[CANDY_ROW-1][pE.y-1])) {
+            //     pLT.x = 0;
+            //     pLT.y = pE.y-1;
+            //     pRB.y = pE.y;
+            //     pRB.x = CANDY_ROW-1;
+            // } else if(pE.y < CANDY_COLUMN-1 && (candy[0][pE.y] != candy[CANDY_ROW-1][pE.y] || candy[0][pE.y+1]!= candy[CANDY_ROW-1][pE.y+1])) {
+            //     pLT.x = 0;
+            //     pLT.y = pE.y;
+            //     pRB.y = pE.y+1;
+            //     pRB.x = CANDY_ROW-1;
+            //     printCandy(candy);
+            //     cout << "------------------!!!!---------------------->" << heuristic << endl;
+            // }
+            if(DEBUG) cout << pLT.y << ":" << pRB.y << endl;
+            if(DEBUG) cout << "search deep is:" << deep << "heuristic:" << heuristic << endl;
             search.clear();
             deepSearch.clear();
-            betterSearchMove(candy, history, search, deepSearch, deep++, &heuristic);
-        } while (search.size() == 0);
-        // if(history.size()>500) exit(-1);
-        if(DEBUG) cout << "get search path size:" << search.size() << endl;
+            betterSearchMove(candy, history, search, deepSearch, deep++, &heuristic, pLT, pRB, 0);
+        // } while (preHeuristic<=heuristic);
+        } while (heuristic!=0);
+        // exit(0);
+        preHeuristic = heuristic;
+        if (DEBUG) {
+            cout << "get search path size:" << search.size() << endl;
+            printCandy(candy);
+        }
         for (std::vector<char>::iterator it = search.begin(); it != search.end(); ++it)
         {
+            Position p1 = getPosition(candy);
+            Position p2 = p1;
             char ch = *it;
-            if(DEBUG) cout << ch;
-            // betterSearchingMove(candy, search,0, 5);
-            if(DEBUG) cout << "better Approach move is: " << ch;
+            if(DEBUG) cout << "better move is: " << ch;
             if (ch == 'w')
             {
                 if (p1.x == 0)
@@ -491,18 +578,24 @@ void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
             {
                 if(DEBUG) cout << "QUIT" << endl;
             }
+            totalSteps++;
             swapCandy(p1, p2, candy);
             history.push_back(candy2String(candy));
         }
-
+        // if(checkMoveCandy(candy, 1, 0))
         if (checkCandy(candy))
         {
-            // if(DEBUG || SHOW) 
+            if(DEBUG || SHOW) 
                 printCandy(candy);
             if(DEBUG) cout << "Congratulations!! Spend:" << steps << " steps" << endl;
             if(DEBUG) cout << "Solution is " << solution << endl;
-            writeSoltion(solution, steps);
+            milliseconds ms = duration_cast< milliseconds >(
+                system_clock::now().time_since_epoch()
+            );
+            int finish = ms.count()-start;
+            writeSoltion(solution, finish);
             break;
+            
         }
     } while (ch != 'q');
 }
@@ -519,6 +612,7 @@ bool checkApproachCandy(const CANDY_ARRAY candy, int distance)
     std::map<char, int> counting;
     std::pair<std::map<char, int>::iterator, bool> ret;
     int count = 0;
+    if(DEBUG) printCandy(candy);
     for (int j = 0; j < CANDY_COLUMN; j++)
     {
         for (int i = 0; i < CANDY_ROW; i++)
@@ -528,8 +622,6 @@ bool checkApproachCandy(const CANDY_ARRAY candy, int distance)
                 ret = counting.insert(std::pair<char, int>(candy[i][j], j));
                 if (ret.second == false)
                 {
-                    // std::cout << "element " << candy[i][j] << " already existed";
-                    // std::cout << " with a value of " << ret.first->second << '\n';
                     if (j - ret.first->second <= distance)
                     {
                         count++;
@@ -539,13 +631,14 @@ bool checkApproachCandy(const CANDY_ARRAY candy, int distance)
             }
         }
     }
-    return count >= 5;
+    return count >= MAX_APPROACH;
 }
-int approachHeuristicFunction(const CANDY_ARRAY candy)
+int approachHeuristicFunction(const CANDY_ARRAY candy, int distance)
 {
     std::map<char, int> counting;
     std::pair<std::map<char, int>::iterator, bool> ret;
     int heuristic = 0;
+    int count = 0;
     for (int j = 0; j < CANDY_COLUMN; j++)
     {
         for (int i = 0; i < CANDY_ROW; i++)
@@ -555,34 +648,38 @@ int approachHeuristicFunction(const CANDY_ARRAY candy)
                 ret = counting.insert(std::pair<char, int>(candy[i][j], j));
                 if (ret.second == false)
                 {
-                    // std::cout << "element " << candy[i][j] << " already existed";
-                    // std::cout << " with a value of " << ret.first->second << '\n';
-                    heuristic += (j - ret.first->second);
+                    int d = j - ret.first->second;
+                    if(d <= distance) {
+                        count++;
+                    }
+                    heuristic += (d);
                     counting.erase(candy[i][j]);
+                    if(count == MAX_APPROACH) {
+                        return heuristic+MAX_APPROACH-count;
+                    }
                 }
             }
         }
     }
 
-    return heuristic;
+    return heuristic+MAX_APPROACH-count;
 }
 
-void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<char> &search, vector<char> &deepSearch, int deep, int *heuristic)
+void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<char> &search, vector<char> &deepSearch, int deep, int *heuristic, int distance, char from)
 {
     char better = 0;
     char move[] = {'w', 's', 'a', 'd'};
-    // cout<<sizeof(move);
     if (deep == 0)
     {
         if(DEBUG) cout << "deep == 0" << endl;
         string candyStr = candy2String(candy);
         if (find(history.begin(), history.end(), candyStr) == history.end())
         {
-            int h = approachHeuristicFunction(candy);
+            int h = approachHeuristicFunction(candy, distance);
             if(DEBUG) cout << "get heuristic value:" << h << "    old is:" << *heuristic << endl;
             if (h < *heuristic)
             {
-                if(DEBUG) cout << "less than old heuristic:" << *heuristic << endl;
+                if(DEBUG) cout << h << "less than old heuristic:" << *heuristic << endl;
                 *heuristic = h;
                 search.clear();
                 search.assign(deepSearch.begin(), deepSearch.end());
@@ -607,7 +704,7 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         char ch = move[approach];
         if (ch == 'w')
         {
-            if (p1.x == 0)
+            if (p1.x == 0 || from == 's')
             {
                 if(DEBUG) cout << "**Cannot go up!" << endl;
                 continue;
@@ -619,7 +716,7 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         }
         else if (ch == 's')
         {
-            if (p1.x == CANDY_ROW - 1)
+            if (p1.x == CANDY_ROW - 1 || from == 'w')
             {
                 if(DEBUG) cout << "**Cannot go down!" << endl;
                 continue;
@@ -631,7 +728,7 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         }
         else if (ch == 'd')
         {
-            if (p1.y == CANDY_COLUMN - 1)
+            if (p1.y == CANDY_COLUMN - 1 || from == 'a')
             {
                 if(DEBUG) cout << "**Cannot go right!" << endl;
                 continue;
@@ -643,7 +740,7 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         }
         else if (ch == 'a')
         {
-            if (p1.y == 0)
+            if (p1.y == 0 || from == 'd')
             {
                 if(DEBUG) cout << "**Cannot go left!" << endl;
                 continue;
@@ -657,13 +754,11 @@ void betterApproachMove(const CANDY_ARRAY candy, vector<string> history, vector<
         {
             if(DEBUG) cout << "QUIT" << endl;
         }
-        // if(p2.x != history.x || p2.y != history.y) {
         deepSearch.push_back(ch);
         if(DEBUG) cout << ch << "go deep" << d - 1 << endl;
         swapCandy(p1, p2, heuristicCandy);
-        betterApproachMove(heuristicCandy, history, search, deepSearch, --d, heuristic);
+        betterApproachMove(heuristicCandy, history, search, deepSearch, --d, heuristic, distance, ch);
         deepSearch.pop_back();
-        // }
     }
 }
 void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
@@ -676,7 +771,8 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
     vector<char> deepSearch;
     for(int i=1;i<CANDY_COLUMN;i++) {
         if (checkApproachCandy(candy, i)) {
-            if(i==1) {
+            if(i<=MINI_DISTANCE) {
+                if(SHOW) printCandy(candy);
                 return;
             } else {
                 distance = i;
@@ -684,11 +780,15 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
             }
         }
     }
+    int candyCount = countUniqueCharacters(candy2String(candy));
+    if(candyCount <=4) {
+        MAX_APPROACH = CANDY_COLUMN;
+    } else {
+        MAX_APPROACH = CANDY_COLUMN+1;
+    }
     do
     {
-        if(DEBUG || SHOW) printCandy(candy);
-        Position p1 = getPosition(candy);
-        Position p2 = p1;
+        // if(DEBUG || SHOW) printCandy(candy);
         int deep = 1;
         int heuristic = std::numeric_limits<int>::max();
         do
@@ -696,15 +796,19 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
             if(DEBUG) cout << "search deep is:" << deep << endl;
             search.clear();
             deepSearch.clear();
-            betterApproachMove(candy, history, search, deepSearch, deep++, &heuristic);
-        } while (search.size() == 0);
-        if(DEBUG) cout << "get search path size:" << search.size() << endl;
-
+            betterApproachMove(candy, history, search, deepSearch, deep++, &heuristic, distance, 0);
+        // } while(search.size()==0);CANDY_COLUMN+1
+        // } while (!checkApproachCandy(heuristicCandy, distance));
+        } while (heuristic>CANDY_COLUMN*distance);//search.size() == 0);
+        if(DEBUG) {
+            cout << "get search path size:" << search.size() <<",deep:" << deep << ",distance:" << distance << endl;
+            printCandy(candy);
+        }
         for (std::vector<char>::iterator it = search.begin(); it != search.end(); ++it)
         {
             char ch = *it;
-            if(DEBUG) cout << ch;
-            // betterSearchingMove(candy, search,0, 5);
+            Position p1 = getPosition(candy);
+            Position p2 = p1;
             if(DEBUG) cout << "better Approach move is: " << ch;
             if (ch == 'w')
             {
@@ -766,6 +870,7 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
             {
                 if(DEBUG) cout << "QUIT" << endl;
             }
+            totalSteps++;
             swapCandy(p1, p2, candy);
             history.push_back(candy2String(candy));
         }
@@ -774,8 +879,9 @@ void autoApproachCandy(CANDY_ARRAY candy, vector<string> &history)
         {
             if(DEBUG) cout << "Approach good!! Spend:" << steps << " steps" << endl;
             if(DEBUG) cout << "Approach solution is " << solution << endl;
-            if (distance == 1)
+            if (distance == MINI_DISTANCE || checkApproachCandy(candy, MINI_DISTANCE))
             {
+                if(SHOW) printCandy(candy);
                 writeApproach(solution);
                 break;
             }
@@ -792,16 +898,21 @@ void loadFileAutomaticlyMove(string file)
     {
         while (getline(filestream, line))
         {
-            cout << ++lineNumber << "Candy Problem:" << endl
+            cout << ++lineNumber << " Candy Problem:" << endl
                  << line << endl
                  << endl;
             CANDY_ARRAY candy;
             vector<string> history;
             initCandy(candy);
             string2Candy(line, candy);
+            milliseconds ms = duration_cast< milliseconds >(
+                system_clock::now().time_since_epoch()
+            );
+            start = ms.count();
             autoApproachCandy(candy, history);
             autoMoveCandy(candy, history);
         }
+        writeApproach(std::to_string(totalSteps));
         filestream.close();
     }
     else
