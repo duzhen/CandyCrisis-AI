@@ -11,7 +11,7 @@
 #include <thread>
 
 #define DEBUG false
-#define SHOW false
+#define SHOW true
 #define MINI_DISTANCE 1
 #define KB_UP 72
 #define KB_DOWN 80
@@ -31,6 +31,8 @@ typedef struct
     unsigned int y = 0;
 } Position;
 
+int miniMove = 1;
+int miniCandyCount = 3;
 int start = 0;
 int totalSteps = 0;
 string output;
@@ -472,7 +474,7 @@ void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
     if(heuristic > 3) {
         preHeuristic = 2;
     } else {
-        preHeuristic = 1;
+        preHeuristic = miniMove;
     }
     int candyCount = countUniqueCharacters(candy2String(candy));
     do
@@ -506,10 +508,10 @@ void autoMoveCandy(CANDY_ARRAY candy, vector<string> &history)
             search.clear();
             deepSearch.clear();
             betterSearchMove(candy, history, search, deepSearch, deep++, &heuristic, pLT, pRB, 0);
-            if(candyCount <=4) {
+            if(candyCount <=miniCandyCount+1) {
                 if(heuristic==0) break;
             } else {
-                if(preHeuristic>heuristic) break;
+                if(preHeuristic>heuristic || heuristic==0) break;
             }
         // } while (preHeuristic<=heuristic);
         } while (true);//heuristic!=0);
@@ -996,12 +998,41 @@ int main(int argc, char **argv)
             loadFileAutomaticlyMove(input);
         }
     } else if(argc == 5) {
-        int threadNumber = std::stoi(argv[4]);
+        miniMove = std::stoi(argv[4]);
         string automatic = argv[3];
         if (automatic == "auto")
         {
-            // multiThreadLoadFileAutomaticlyMove(input, threadNumber);
+            loadFileAutomaticlyMove(input);
         }
+        // int threadNumber = std::stoi(argv[4]);
+        // string automatic = argv[3];
+        // if (automatic == "auto")
+        // {
+        //     // multiThreadLoadFileAutomaticlyMove(input, threadNumber);
+        // }
+    } else if(argc == 6) {
+        int level = std::stoi(argv[5]);
+        if(level == 1) {
+            miniCandyCount = 3;
+        } else if(level == 2) {
+            miniCandyCount = 4;
+        } else if(level == 3) {
+            miniCandyCount = 5;
+        } else if(level == 4) {
+            miniCandyCount = 6;
+        }
+        miniMove = std::stoi(argv[4]);
+        string automatic = argv[3];
+        if (automatic == "auto")
+        {
+            loadFileAutomaticlyMove(input);
+        }
+        // int threadNumber = std::stoi(argv[4]);
+        // string automatic = argv[3];
+        // if (automatic == "auto")
+        // {
+        //     // multiThreadLoadFileAutomaticlyMove(input, threadNumber);
+        // }
     } else
     {
         loadFile(input);
